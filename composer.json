@@ -1,5 +1,5 @@
 {
-  "name": "p4it-kft/yii2-rest",
+  "name": "p4it-kft/yii2-rest-server",
   "description": "Yii2 REST server classes",
   "keywords": [
     "rest",
