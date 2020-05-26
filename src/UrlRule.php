@@ -9,8 +9,13 @@ class UrlRule extends \yii\rest\UrlRule
         'GET,HEAD {id}' => 'view',
         'POST' => 'create',
         'GET,POST search' => 'index', //proxy action to be able to accept post request on index action with complicated filters in request body
+        'GET describe' => 'describe',
         'GET,HEAD' => 'index',
         '{id}' => 'options',
         '' => 'options',
     ];
+
+    public function getRules() {
+        return $this->rules;
+    }
 }

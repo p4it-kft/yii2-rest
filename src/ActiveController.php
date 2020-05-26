@@ -57,6 +57,9 @@ class ActiveController extends \yii\rest\ActiveController
             'options' => [
                 'class' => OptionsAction::class,
             ],
+            'describe' => [
+                'class' => DescribeAction::class,
+            ],
         ];
 
         if ($this->searchModelClass) {
@@ -108,7 +111,7 @@ class ActiveController extends \yii\rest\ActiveController
             $requestParams = Yii::$app->getRequest()->getQueryParams();
         }
 
-        if (method_exists($action->dataFilter->searchModel, 'searchQuery')) {
+        if (method_exists($action->dataFilter->searchModel, 'searchQuery') && is_callable($action->dataFilter->searchModel, 'searchQuery')) {
             $query = $action->dataFilter->searchModel->searchQuery();
         } else {
             /* @var $modelClass \yii\db\BaseActiveRecord */
