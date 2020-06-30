@@ -3,6 +3,7 @@
 namespace p4it\rest\server;
 
 use p4it\rest\server\data\ActiveDataFilter;
+use p4it\rest\server\resources\ResourceSearchInterface;
 use Yii;
 use yii\data\ActiveDataProvider;
 use yii\rest\Serializer;
@@ -94,7 +95,7 @@ class ActiveController extends \yii\rest\ActiveController
         $searchModelClass = $this->searchModelClass;
         $searchModel = new $searchModelClass();
 
-        if ($searchModel->hasMethod('searchQuery')) {
+        if ($searchModel instanceof ResourceSearchInterface) {
             $model = $searchModel->searchQuery()->andWhere($model->getPrimaryKey(true))->one();
             if ($model === null) {
                 throw new UnauthorizedHttpException();
@@ -111,7 +112,7 @@ class ActiveController extends \yii\rest\ActiveController
             $requestParams = Yii::$app->getRequest()->getQueryParams();
         }
 
-        if ($action->dataFilter->searchModel->hasMethod('searchQuery')) {
+        if ($action->dataFilter->searchModel instanceof ResourceSearchInterface) {
             $query = $action->dataFilter->searchModel->searchQuery();
         } else {
             /* @var $modelClass \yii\db\BaseActiveRecord */
