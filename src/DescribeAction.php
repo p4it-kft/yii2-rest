@@ -18,6 +18,12 @@ use p4it\rest\server\models\DescribeResponseValidationFailed;
 use p4it\rest\server\models\DescribeSchema;
 use p4it\rest\server\models\DescribeSearchResource;
 use p4it\rest\server\models\DescribeServer;
+use p4it\rest\server\models\parameter\IndexParameter;
+use p4it\rest\server\models\response\CreateResponse;
+use p4it\rest\server\models\response\DeleteResponse;
+use p4it\rest\server\models\response\IndexResponse;
+use p4it\rest\server\models\response\UpdateResponse;
+use p4it\rest\server\models\response\ViewResponse;
 use pappco\yii2\helpers\ArrayHelper;
 use Symfony\Component\Yaml\Yaml;
 use Yii;
@@ -149,86 +155,16 @@ class DescribeAction extends Action
 
         /** @var ActiveController $controller */
         $controller = $this->controller;
+        $modelClass = $controller->modelClass;
+        $searchModelClass = $controller->searchModelClass ?? $modelClass;
+
         $responses = [
-            'index' => [
-                new DescribeResponseIndex([
-                    'statusCode' => 200,
-                    'description' => 'Get ' . Inflector::pluralize($controller->modelClass),
-                    'content' => new DescribeResource(['modelClass' => $controller->modelClass])
-                ]),
-                new DescribeResponseValidationFailed([
-                    'statusCode' => 422,
-                    'description' => 'Validation failed ' . Inflector::pluralize($controller->modelClass),
-                    'content' => new DescribeResource(['modelClass' => $controller->searchModelClass ?? $controller->modelClass])
-                ]),
-            ],
-            'create' => [
-                new DescribeResponse([
-                    'statusCode' => 201,
-                    'description' => 'Create ' . $controller->modelClass,
-                    'content' => new DescribeResource(['modelClass' => $controller->modelClass])
-                ]),
-                new DescribeResponseValidationFailed([
-                    'statusCode' => 422,
-                    'description' => 'Validation failed ' . Inflector::pluralize($controller->modelClass),
-                    'content' => new DescribeResource(['modelClass' => $controller->modelClass])
-                ]),
-                new DescribeResponseValidationFailed([
-                    'statusCode' => 500,
-                    'description' => 'Failed to update the object for unknown reason ' . Inflector::pluralize($controller->modelClass),
-                ]),
-            ],
-            'update' => [
-                new DescribeResponse([
-                    'statusCode' => 200,
-                    'description' => 'Update ' . $controller->modelClass,
-                    'content' => new DescribeResource(['modelClass' => $controller->modelClass])
-                ]),
-                new DescribeResponseValidationFailed([
-                    'statusCode' => 422,
-                    'description' => 'Validation failed ' . Inflector::pluralize($controller->modelClass),
-                    'content' => new DescribeResource(['modelClass' => $controller->modelClass])
-                ]),
-                new DescribeResponseValidationFailed([
-                    'statusCode' => 500,
-                    'description' => 'Failed to update the object for unknown reason ' . Inflector::pluralize($controller->modelClass),
-                ]),
-                new DescribeResponseValidationFailed([
-                    'statusCode' => 404,
-                    'description' => 'Object not found ' . Inflector::pluralize($controller->modelClass),
-                ]),
-            ],
-            'delete' => [
-                new DescribeResponseDelete([
-                    'statusCode' => 204,
-                    'description' => 'Delete ' . $controller->modelClass
-                ]),
-                new DescribeResponseValidationFailed([
-                    'statusCode' => 500,
-                    'description' => 'Failed to update the object for unknown reason ' . Inflector::pluralize($controller->modelClass),
-                ]),
-                new DescribeResponseValidationFailed([
-                    'statusCode' => 404,
-                    'description' => 'Object not found ' . Inflector::pluralize($controller->modelClass),
-                ]),
-            ],
-            'view' => [
-                new DescribeResponse([
-                    'statusCode' => 200,
-                    'description' => 'View ' . $controller->modelClass,
-                    'content' => new DescribeResource(['modelClass' => $controller->modelClass])
-                ]),
-                new DescribeResponseValidationFailed([
-                    'statusCode' => 404,
-                    'description' => 'Object not found ' . Inflector::pluralize($controller->modelClass),
-                ]),
-            ],
-            'describe' => [
-                new DescribeResponse([
-                    'statusCode' => 200,
-                    'description' => 'Describe ' . $controller->id,
-                ]),
-            ],
+            'index' => IndexResponse::getResponses($modelClass, $searchModelClass),
+            'create' => CreateResponse::getResponses($modelClass),
+            'update' => UpdateResponse::getResponses($modelClass),
+            'delete' => DeleteResponse::getResponses($modelClass),
+            'view' => ViewResponse::getResponses($modelClass),
+            'describe' => \p4it\rest\server\models\response\DescribeResponse::getResponses($modelClass),
         ];
 
         if ($this->responses instanceof Closure) {
@@ -260,34 +196,9 @@ class DescribeAction extends Action
         }
         /** @var ActiveController $controller */
         $controller = $this->controller;
+        $modelClass = $controller->modelClass;
         $parameters = [
-            'index' => [
-                new DescribeParameterFilter([
-                    'in' => 'query',
-                    'name' => 'filter',
-                    'content' => new DescribeResource(['modelClass' => $controller->modelClass])
-                ]),
-                new DescribeParameter([
-                    'in' => 'query',
-                    'name' => 'sort',
-                    'schema' => new DescribeSchema(['type' => 'string'])
-                ]),
-                new DescribeParameter([
-                    'in' => 'query',
-                    'name' => 'page',
-                    'schema' => new DescribeSchema(['type' => 'string'])
-                ]),
-                new DescribeParameter([
-                    'in' => 'query',
-                    'name' => 'per-page',
-                    'schema' => new DescribeSchema(['type' => 'string'])
-                ]),
-                new DescribeParameter([
-                    'in' => 'query',
-                    'name' => 'expand',
-                    'schema' => new DescribeSchema(['type' => 'string'])
-                ]),
-            ]
+            'index' => IndexParameter::getParameters($modelClass),
         ];
 
 
@@ -311,15 +222,17 @@ class DescribeAction extends Action
 
         /** @var ActiveController $controller */
         $controller = $this->controller;
+        $modelClass = $controller->modelClass;
+        $searchModelClass = $controller->searchModelClass ?? $modelClass;
         $requestBodies = [
             'update' =>
                 new DescribeRequestBody([
                     'required' => true,
-                    'content' => new DescribeResource(['modelClass' => $controller->modelClass])
+                    'content' => new DescribeResource(['modelClass' => $modelClass])
                 ]),
             'index' =>
                 new DescribeRequestBody([
-                    'content' => new DescribeSearchResource(['modelClass' => $controller->searchModelClass ?? $controller->modelClass])
+                    'content' => new DescribeSearchResource(['modelClass' => $searchModelClass])
                 ]),
         ];
 

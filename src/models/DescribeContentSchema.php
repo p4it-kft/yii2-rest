@@ -2,7 +2,6 @@
 
 namespace p4it\rest\server\models;
 
-use modules\core\common\components\ActiveDataFilter;
 use yii\base\Model;
 
 /**

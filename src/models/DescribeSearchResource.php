@@ -2,11 +2,9 @@
 
 namespace p4it\rest\server\models;
 
-use modules\core\common\components\ActiveDataFilter;
+use p4it\rest\server\data\ActiveDataFilter;
 use pappco\yii2\helpers\ArrayHelper;
 use yii\base\Model;
-use yii\data\DataFilter;
-use function Clue\StreamFilter\fun;
 
 /**
  * https://swagger.io/docs/specification/paths-and-operations/
@@ -48,19 +46,20 @@ class DescribeSearchResource extends Model
         $operationTypes = ArrayHelper::merge($filter->extraOperatorTypes, $filter->operatorTypes);
         $searchAttributeTypeOperationTypes = [];
         foreach ($searchAttributeTypes as $searchAttribute => $searchAttributeType) {
-            $searchAttributeTypeOperationTypes[$searchAttribute] = array_keys(array_filter($operationTypes, static function ($operationType) use ($searchAttributeType) {
-                if ($operationType === '*') {
-                    return true;
-                }
+            $searchAttributeTypeOperationTypes[$searchAttribute] = array_keys(array_filter($operationTypes,
+                static function ($operationType) use ($searchAttributeType) {
+                    if ($operationType === '*') {
+                        return true;
+                    }
 
-                return in_array($searchAttributeType, $operationType, true);
-            }));
+                    return in_array($searchAttributeType, $operationType, true);
+                }));
         }
 
         $this->filter = new DescribeContentSchema();
 
         foreach ($searchAttributeTypeOperationTypes as $searchAttribute => $type) {
-            $this->filter->addProperty($searchAttribute, 'possible operators: ' . implode(',', $type), DescribeType::getType($searchAttributeTypes[$searchAttribute] ?? null));
+            $this->filter->addProperty($searchAttribute, 'possible operators: '.implode(',', $type), DescribeType::getType($searchAttributeTypes[$searchAttribute] ?? null));
         }
     }
 

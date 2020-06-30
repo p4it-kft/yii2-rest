@@ -2,8 +2,7 @@
 
 namespace p4it\rest\server\models;
 
-use modules\core\common\components\ActiveDataFilter;
-use yii\base\Model;
+use p4it\rest\server\data\ActiveDataFilter;
 
 /**
  * https://swagger.io/docs/specification/paths-and-operations/
@@ -35,7 +34,9 @@ class DescribeResource extends DescribeContentSchema
 
         //fixme: this is not always good! fields can be empty because we are working with not populated active records.
         //todo: relations are missing as well. we need to find a way to get back all the relations.
-        $model = $model::find()->one()??$model;
+        if($model->hasMethod('find')) {
+            $model = $model::find()->one()??$model;
+        }
 
         $fields = $model->fields();
         if(!$fields) {
