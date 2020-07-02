@@ -4,7 +4,6 @@ namespace p4it\rest\server\models\responses;
 
 use p4it\rest\server\models\DescribeResource;
 use p4it\rest\server\models\DescribeResponse;
-use p4it\rest\server\models\DescribeResponseValidationFailed;
 use yii\helpers\Inflector;
 
 class ViewResponses {
@@ -15,7 +14,7 @@ class ViewResponses {
                 'description' => 'View ' . $modelClass,
                 'content' => new DescribeResource(['modelClass' => $modelClass])
             ]),
-            new DescribeResponseValidationFailed([
+            new DescribeResponse([
                 'statusCode' => 404,
                 'description' => 'Object not found ' . Inflector::pluralize($modelClass),
             ]),

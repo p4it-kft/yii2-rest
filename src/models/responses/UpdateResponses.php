@@ -20,11 +20,11 @@ class UpdateResponses {
                 'description' => 'Validation failed ' . Inflector::pluralize($modelClass),
                 'content' => new DescribeResource(['modelClass' => $modelClass])
             ]),
-            new DescribeResponseValidationFailed([
+            new DescribeResponse([
                 'statusCode' => 500,
                 'description' => 'Failed to update the object for unknown reason ' . Inflector::pluralize($modelClass),
             ]),
-            new DescribeResponseValidationFailed([
+            new DescribeResponse([
                 'statusCode' => 404,
                 'description' => 'Object not found ' . Inflector::pluralize($modelClass),
             ]),
