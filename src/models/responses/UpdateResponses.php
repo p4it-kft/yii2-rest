@@ -1,19 +1,18 @@
 <?php
 
-namespace p4it\rest\server\models\response;
+namespace p4it\rest\server\models\responses;
 
 use p4it\rest\server\models\DescribeResource;
 use p4it\rest\server\models\DescribeResponse;
-use p4it\rest\server\models\DescribeResponseIndex;
 use p4it\rest\server\models\DescribeResponseValidationFailed;
 use yii\helpers\Inflector;
 
-class CreateResponse {
-    public static function getResponses($modelClass) {
+class UpdateResponses {
+    public static function get($modelClass) {
         return [
             new DescribeResponse([
-                'statusCode' => 201,
-                'description' => 'Create ' . $modelClass,
+                'statusCode' => 200,
+                'description' => 'Update ' . $modelClass,
                 'content' => new DescribeResource(['modelClass' => $modelClass])
             ]),
             new DescribeResponseValidationFailed([
@@ -24,6 +23,10 @@ class CreateResponse {
             new DescribeResponseValidationFailed([
                 'statusCode' => 500,
                 'description' => 'Failed to update the object for unknown reason ' . Inflector::pluralize($modelClass),
+            ]),
+            new DescribeResponseValidationFailed([
+                'statusCode' => 404,
+                'description' => 'Object not found ' . Inflector::pluralize($modelClass),
             ]),
         ];
     }

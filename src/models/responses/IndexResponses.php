@@ -1,14 +1,14 @@
 <?php
 
-namespace p4it\rest\server\models\response;
+namespace p4it\rest\server\models\responses;
 
 use p4it\rest\server\models\DescribeResource;
 use p4it\rest\server\models\DescribeResponseIndex;
 use p4it\rest\server\models\DescribeResponseValidationFailed;
 use yii\helpers\Inflector;
 
-class IndexResponse {
-    public static function getResponses($modelClass, $searchModelClass) {
+class IndexResponses {
+    public static function get($modelClass, $searchModelClass) {
         return [
             new DescribeResponseIndex([
                 'statusCode' => 200,

@@ -11,6 +11,8 @@ class UrlRule extends \yii\rest\UrlRule
         'GET,POST search' => 'index', //proxy action to be able to accept post request on index action with complicated filters in request body
         'GET describe' => 'describe',
         'GET,HEAD' => 'index',
+        'GET,POST {columnName}/values' => 'values',
+        'GET,POST {columnName}/{columnId}/values' => 'values',
         '{id}' => 'options',
         '' => 'options',
     ];
@@ -18,4 +20,10 @@ class UrlRule extends \yii\rest\UrlRule
     public function getRules() {
         return $this->rules;
     }
+    
+    public $tokens = [
+        '{id}' => '<id:\\d[\\d,]*>',
+        '{columnName}' => '<columnName:\\w[\\w,]*>',
+        '{columnId}' => '<columnId:\\w[\\w,]*>',
+    ];
 }

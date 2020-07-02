@@ -1,16 +1,14 @@
 <?php
 
-namespace p4it\rest\server\models\response;
+namespace p4it\rest\server\models\responses;
 
 use p4it\rest\server\models\DescribeResource;
 use p4it\rest\server\models\DescribeResponse;
-use p4it\rest\server\models\DescribeResponseDelete;
-use p4it\rest\server\models\DescribeResponseIndex;
 use p4it\rest\server\models\DescribeResponseValidationFailed;
 use yii\helpers\Inflector;
 
-class ViewResponse {
-    public static function getResponses($modelClass) {
+class ViewResponses {
+    public static function get($modelClass) {
         return [
             new DescribeResponse([
                 'statusCode' => 200,

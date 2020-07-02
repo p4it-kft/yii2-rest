@@ -8,22 +8,20 @@ use p4it\rest\server\models\Describe;
 use p4it\rest\server\models\DescribeInfo;
 use p4it\rest\server\models\DescribeOperation;
 use p4it\rest\server\models\DescribeParameter;
-use p4it\rest\server\models\DescribeParameterFilter;
 use p4it\rest\server\models\DescribeRequestBody;
 use p4it\rest\server\models\DescribeResource;
 use p4it\rest\server\models\DescribeResponse;
-use p4it\rest\server\models\DescribeResponseDelete;
-use p4it\rest\server\models\DescribeResponseIndex;
-use p4it\rest\server\models\DescribeResponseValidationFailed;
 use p4it\rest\server\models\DescribeSchema;
 use p4it\rest\server\models\DescribeSearchResource;
 use p4it\rest\server\models\DescribeServer;
 use p4it\rest\server\models\parameter\IndexParameter;
-use p4it\rest\server\models\response\CreateResponse;
-use p4it\rest\server\models\response\DeleteResponse;
-use p4it\rest\server\models\response\IndexResponse;
-use p4it\rest\server\models\response\UpdateResponse;
-use p4it\rest\server\models\response\ViewResponse;
+use p4it\rest\server\models\responses\CreateResponses;
+use p4it\rest\server\models\responses\DeleteResponses;
+use p4it\rest\server\models\responses\DescribeResponses;
+use p4it\rest\server\models\responses\IndexResponses;
+use p4it\rest\server\models\responses\UpdateResponses;
+use p4it\rest\server\models\responses\ValuesResponses;
+use p4it\rest\server\models\responses\ViewResponses;
 use pappco\yii2\helpers\ArrayHelper;
 use Symfony\Component\Yaml\Yaml;
 use Yii;
@@ -159,12 +157,13 @@ class DescribeAction extends Action
         $searchModelClass = $controller->searchModelClass ?? $modelClass;
 
         $responses = [
-            'index' => IndexResponse::getResponses($modelClass, $searchModelClass),
-            'create' => CreateResponse::getResponses($modelClass),
-            'update' => UpdateResponse::getResponses($modelClass),
-            'delete' => DeleteResponse::getResponses($modelClass),
-            'view' => ViewResponse::getResponses($modelClass),
-            'describe' => \p4it\rest\server\models\response\DescribeResponse::getResponses($modelClass),
+            'index' => IndexResponses::get($modelClass, $searchModelClass),
+            'create' => CreateResponses::get($modelClass),
+            'update' => UpdateResponses::get($modelClass),
+            'delete' => DeleteResponses::get($modelClass),
+            'view' => ViewResponses::get($modelClass),
+            'values' => ValuesResponses::get($modelClass),
+            'describe' => DescribeResponses::get($controller),
         ];
 
         if ($this->responses instanceof Closure) {
