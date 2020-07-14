@@ -62,7 +62,7 @@ class ValuesAction extends \yii\rest\IndexAction
             'class' => TransformActiveDataProvider::class,
             'query' => $dataprovider->query->groupBy([$columnName])->asArray()->select(['name' => $columnName, 'count' => 'count(*)', 'id' => $columnId]),
             'transform' => $transform,
-            'key' => 'id',
+            'keys' => ['id'],
             'pagination' => [
                 'params' => $dataprovider->getPagination()->params,
             ],
