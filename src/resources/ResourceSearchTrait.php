@@ -53,11 +53,15 @@ trait ResourceSearchTrait
 
         if ($this->wrapQuery) {
             $groupBy = $this->query()->groupBy;
-            $groupBy = array_map(static function ($value){
-                $array = explode('.', $value);
-                return end($array);
-            }, $groupBy);
-            $query = self::find()->from(['subQuery' => $this->query()->groupBy([])])->select(['*'])->groupBy($groupBy);
+            $query = self::find()->from(['subQuery' => $this->query()->groupBy([])])->select(['*']);
+            if($groupBy) {
+                $groupBy = array_map(static function ($value){
+                    $array = explode('.', $value);
+                    return end($array);
+                }, $groupBy);
+
+                $query->groupBy($groupBy);
+            }
         }
 
         return $query;
