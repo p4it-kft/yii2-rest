@@ -6,7 +6,6 @@ use p4it\rest\server\data\ActiveDataFilter;
 use p4it\rest\server\resources\ResourceSearchInterface;
 use Yii;
 use yii\data\ActiveDataProvider;
-use yii\rest\Serializer;
 use yii\web\ForbiddenHttpException;
 use yii\web\UnauthorizedHttpException;
 
