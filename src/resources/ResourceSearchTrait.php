@@ -53,6 +53,7 @@ trait ResourceSearchTrait
 
         if ($this->wrapQuery) {
             $groupBy = $this->query()->groupBy;
+            $orderBy = $this->query()->orderBy;
             $query = self::find()->from(['subQuery' => $this->query()->groupBy([])])->select(['*']);
             if($groupBy) {
                 $groupBy = array_map(static function ($value){
@@ -61,6 +62,15 @@ trait ResourceSearchTrait
                 }, $groupBy);
 
                 $query->groupBy($groupBy);
+            }
+
+            if($groupBy && $orderBy) {
+                $orderBy = array_combine(array_map(static function ($value){
+                    $array = explode('.', $value);
+                    return end($array);
+                }, array_keys($orderBy)), $orderBy);
+
+                $query->orderBy($orderBy);
             }
         }
 
