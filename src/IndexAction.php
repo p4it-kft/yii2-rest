@@ -14,6 +14,6 @@ class IndexAction extends \yii\rest\IndexAction
     /**
      * @var DataFilter[]
      */
-    public $relationDataFilters;
+    public $relationDataFilters = [];
 
 }
