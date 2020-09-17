@@ -2,10 +2,12 @@
 
 namespace p4it\rest\server;
 
+use modules\core\common\components\RelationSearchModel;
 use p4it\rest\server\data\ActiveDataFilter;
+use p4it\rest\server\data\ActiveDataProvider;
 use p4it\rest\server\resources\ResourceSearchInterface;
 use Yii;
-use yii\data\ActiveDataProvider;
+use yii\helpers\ArrayHelper;
 use yii\web\ForbiddenHttpException;
 use yii\web\UnauthorizedHttpException;
 
@@ -70,15 +72,40 @@ class ActiveController extends \yii\rest\ActiveController
         ];
 
         if ($this->searchModelClass) {
+            if(method_exists($this->searchModelClass, 'attributeMap')) {
+                $attributeMap = $this->searchModelClass::attributeMap();
+            }
+
             $actions['index']['dataFilter'] = [
                 'class' => ActiveDataFilter::class,
                 'searchModel' => $this->searchModelClass,
+                'attributeMap' => $attributeMap??[],
             ];
 
             $actions['values']['dataFilter'] = [
                 'class' => ActiveDataFilter::class,
                 'searchModel' => $this->searchModelClass,
+                'attributeMap' => $attributeMap??[],
             ];
+        }
+
+        if (method_exists($this->modelClass, 'relationSearchModels')) {
+            foreach ($this->modelClass::relationSearchModels() as $key => $relationSearchModel) {
+                $attributeMap = [];
+
+                /** @var RelationSearchModel $relationSearchModel */
+                $relationSearchModel = Yii::createObject($relationSearchModel);
+                if(method_exists($relationSearchModel->searchModelClass, 'attributeMap')) {
+                    $attributeMap = $relationSearchModel->searchModelClass::attributeMap();
+                }
+
+                $actions['index']['relationDataFilters'][$key] = [
+                    'class' => ActiveDataFilter::class,
+                    'searchModel' => $relationSearchModel->searchModelClass,
+                    'filterAttributeName' => 'filter_'.$key,
+                    'attributeMap' => $attributeMap??[],
+                ];
+            }
         }
 
         return $actions;
@@ -136,14 +163,42 @@ class ActiveController extends \yii\rest\ActiveController
             $query = $modelClass::find();
         }
 
-
         if (!empty($filter)) {
             $query->andWhere($filter);
+        }
+
+        $relationSearchModelQueries = [];
+        foreach ($action->relationDataFilters as $key => $relationDataFilter) {
+            $relationDataFilter = Yii::createObject($relationDataFilter);
+            if ($relationDataFilter->load($requestParams)) {
+                $filter = $relationDataFilter->build();
+                if ($filter === false) {
+                    return $relationDataFilter;
+                }
+            } else {
+                continue;
+            }
+
+            if ($relationDataFilter->searchModel instanceof ResourceSearchInterface) {
+                $queryExtraField = $relationDataFilter->searchModel->searchQuery();
+            } else {
+                /* @var $modelClass \yii\db\BaseActiveRecord */
+                $modelClass = $relationDataFilter->searchModel;
+
+                $queryExtraField = $modelClass::find();
+            }
+
+            if (!empty($filter)) {
+                $queryExtraField->andWhere($filter);
+            }
+
+            $relationSearchModelQueries[$key] = $queryExtraField;
         }
 
         return Yii::createObject([
             'class' => ActiveDataProvider::class,
             'query' => $query,
+            'relationSearchModelQueries' => $relationSearchModelQueries,
             'pagination' => [
                 'params' => $requestParams,
             ],

@@ -7,8 +7,13 @@
 
 namespace p4it\rest\server;
 
+use yii\data\DataFilter;
+
 class IndexAction extends \yii\rest\IndexAction
 {
-
+    /**
+     * @var DataFilter[]
+     */
+    public $relationDataFilters;
 
 }

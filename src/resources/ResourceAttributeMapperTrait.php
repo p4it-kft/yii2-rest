@@ -6,7 +6,18 @@ trait ResourceAttributeMapperTrait
 {
     public function load($params, $formName = null)
     {
-        foreach ($this->attributeMap() as $from => $to) {
+        $params = $this->mapParams($params);
+
+        return parent::load($params, $formName);
+    }
+
+    public static function attributeMap(): array
+    {
+        return [];
+    }
+
+    public function mapParams($params) {
+        foreach (self::attributeMap() as $from => $to) {
             if (!isset($params[$from]) || isset($params[$to])) {
                 continue;
             }
@@ -15,12 +26,7 @@ trait ResourceAttributeMapperTrait
             unset($params[$from]);
         }
 
-        return parent::load($params, $formName);
-    }
-
-    public function attributeMap(): array
-    {
-        return [];
+        return $params;
     }
 
     public function getFirstErrors()
@@ -32,7 +38,7 @@ trait ResourceAttributeMapperTrait
         $errors = [];
         foreach ($this->getErrors() as $name => $es) {
             if (!empty($es)) {
-                $mappedName = array_search($name, $this->attributeMap(), true);
+                $mappedName = array_search($name, self::attributeMap(), true);
                 $errors[$mappedName ?: $name] = reset($es);
             }
         }
