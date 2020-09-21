@@ -2,17 +2,18 @@
 
 namespace p4it\rest\server;
 
-use modules\core\common\components\RelationSearchModel;
 use p4it\rest\server\data\ActiveDataFilter;
 use p4it\rest\server\data\ActiveDataProvider;
+use p4it\rest\server\resources\RelationSearchModel;
 use p4it\rest\server\resources\ResourceSearchInterface;
+use p4it\rest\server\resources\ResourceSearchModelQueryTrait;
 use Yii;
-use yii\helpers\ArrayHelper;
 use yii\web\ForbiddenHttpException;
 use yii\web\UnauthorizedHttpException;
 
 class ActiveController extends \yii\rest\ActiveController
 {
+    use ResourceSearchModelQueryTrait;
     public $searchModelClass;
 
     /**
@@ -105,6 +106,13 @@ class ActiveController extends \yii\rest\ActiveController
                     'filterAttributeName' => 'filter_'.$key,
                     'attributeMap' => $attributeMap??[],
                 ];
+
+                $actions['view']['relationDataFilters'][$key] = [
+                    'class' => ActiveDataFilter::class,
+                    'searchModel' => $relationSearchModel->searchModelClass,
+                    'filterAttributeName' => 'filter_'.$key,
+                    'attributeMap' => $attributeMap??[],
+                ];
             }
         }
 
@@ -132,7 +140,18 @@ class ActiveController extends \yii\rest\ActiveController
         $searchModel = new $searchModelClass();
 
         if ($searchModel instanceof ResourceSearchInterface) {
-            $model = $searchModel->searchQuery()->andWhere($model->getPrimaryKey(true))->one();
+            $query = $searchModel->searchQuery();
+            $wrappedQuery = $searchModel->wrapQuery??false;
+            if($wrappedQuery) {
+                $model = $query->andWhere($model->getPrimaryKey(true))->one();
+            } else {
+                //nincs wrap, ezért kell az aktuális tabla nevet használni ami nem biztos hogy jó. bár elvileg az aliasolásnak kéne automatice működnie
+                $primaryKeys = [];
+                foreach ($model->getPrimaryKey(true) as $key => $value) {
+                    $primaryKeys[$model::tableName().'.'.$key] = $value;
+                }
+                $model = $query->andWhere($primaryKeys)->one();
+            }
             if ($model === null) {
                 throw new UnauthorizedHttpException();
             }
@@ -167,33 +186,7 @@ class ActiveController extends \yii\rest\ActiveController
             $query->andWhere($filter);
         }
 
-        $relationSearchModelQueries = [];
-        foreach ($action->relationDataFilters as $key => $relationDataFilter) {
-            $relationDataFilter = Yii::createObject($relationDataFilter);
-            if ($relationDataFilter->load($requestParams)) {
-                $filter = $relationDataFilter->build();
-                if ($filter === false) {
-                    return $relationDataFilter;
-                }
-            } else {
-                continue;
-            }
-
-            if ($relationDataFilter->searchModel instanceof ResourceSearchInterface) {
-                $queryExtraField = $relationDataFilter->searchModel->searchQuery();
-            } else {
-                /* @var $modelClass \yii\db\BaseActiveRecord */
-                $modelClass = $relationDataFilter->searchModel;
-
-                $queryExtraField = $modelClass::find();
-            }
-
-            if (!empty($filter)) {
-                $queryExtraField->andWhere($filter);
-            }
-
-            $relationSearchModelQueries[$key] = $queryExtraField;
-        }
+        $relationSearchModelQueries = $this->getRelationSearchModelQueries($action, $requestParams);
 
         return Yii::createObject([
             'class' => ActiveDataProvider::class,
@@ -207,6 +200,8 @@ class ActiveController extends \yii\rest\ActiveController
             ],
         ]);
     }
+
+
 
     /**
      * we could maybe maintain options as well based on this.
