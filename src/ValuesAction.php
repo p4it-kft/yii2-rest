@@ -11,6 +11,7 @@ use p4it\rest\server\data\TransformActiveDataProvider;
 use p4it\rest\server\resources\ValueResource;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\db\Query;
 use yii\web\ServerErrorHttpException;
 
 class ValuesAction extends \yii\rest\IndexAction
@@ -46,7 +47,7 @@ class ValuesAction extends \yii\rest\IndexAction
             throw new ServerErrorHttpException('Column Id is not a safe attribute.');
         }
 
-        $dataprovider->query->groupBy([$columnName])->select([$columnName => 'name']);
+        $query = (new Query())->from(['subQuery' => $dataprovider->query])->groupBy([$columnName]);
 
         if ($this->transform !== null && is_callable($this->transform)) {
             $transform = $this->transform;
@@ -57,11 +58,12 @@ class ValuesAction extends \yii\rest\IndexAction
                 );
             };
         }
-        
+
         return \Yii::createObject([
             'class' => TransformActiveDataProvider::class,
-            'query' => $dataprovider->query->groupBy([$columnName])->asArray()->select(['name' => $columnName, 'count' => 'count(*)', 'id' => $columnId]),
+            'query' => $query->select(['name' => $columnName, 'count' => 'count(*)', 'id' => $columnId]),
             'transform' => $transform,
+            'db' => $model::getDb(),
             'keys' => ['id'],
             'pagination' => [
                 'params' => $dataprovider->getPagination()->params,

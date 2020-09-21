@@ -44,5 +44,4 @@ class ViewAction extends \yii\rest\ViewAction
 
         return $model;
     }
-
 }
