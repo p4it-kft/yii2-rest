@@ -2,7 +2,7 @@
 
 namespace p4it\rest\server\resources;
 
-use p4it\rest\server\resources\ResourceSearchInterface;
+use p4it\rest\server\data\ActiveDataFilter;
 
 trait ResourceSearchModelQueryTrait
 {
@@ -28,7 +28,14 @@ trait ResourceSearchModelQueryTrait
                 $queryExtraField = $modelClass::find();
             }
 
-            if (!empty($filter)) {
+            if($relationDataFilter instanceof ActiveDataFilter && $relationDataFilter->splitFilter) {
+                if (isset($filter['whereFilter']) && $filter['whereFilter']) {
+                    $queryExtraField->andWhere($filter['whereFilter']);
+                }
+                if (isset($filter['havingFilter']) && $filter['havingFilter']) {
+                    $queryExtraField->andHaving($filter['havingFilter']);
+                }
+            } elseif (!empty($filter)) {
                 $queryExtraField->andWhere($filter);
             }
 

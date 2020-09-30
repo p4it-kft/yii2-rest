@@ -1,10 +1,14 @@
 <?php
-
-
 namespace p4it\rest\server\data;
 
 
+use p4it\rest\server\helpers\ArrayHelper;
+
 class ActiveDataFilter extends \yii\data\ActiveDataFilter {
+
+    public $attributeHaving = [];
+    public $splitFilter = false;
+
     public $extraFilterControls = [
         'is' => 'is',
         'isn' => 'is not',
@@ -35,5 +39,47 @@ class ActiveDataFilter extends \yii\data\ActiveDataFilter {
 
         return $this->buildOperatorCondition($operator, $condition, $attribute);
     }
+
+    protected function buildInternal()
+    {
+        if($this->splitFilter === false) {
+            return parent::buildInternal();
+        }
+
+        $filter = $this->normalize(false);
+        if (empty($filter)) {
+            return [];
+        }
+
+        [$whereFilter, $havingFilter] = $this->splitFilter($filter);
+
+        $whereFilter = $this->buildCondition($whereFilter);
+        $havingFilter = $this->buildCondition($havingFilter);
+
+        return ['whereFilter' => $whereFilter, 'havingFilter' => $havingFilter];
+    }
+
+    protected function splitFilter($filter) {
+
+        $whereFilter = $filter;
+        $havingFilter = [];
+        foreach ($this->attributeHaving as $attribute) {
+            $valuePath = ArrayHelper::getValueAndPath($filter, $attribute);
+            if(!$valuePath) {
+                continue;
+            }
+
+            $removedValue = ArrayHelper::removeValueByPath($whereFilter, $valuePath['path']);
+            if($removedValue === false) {
+                continue;
+            }
+
+            ArrayHelper::setValue($havingFilter,$valuePath['path'], $valuePath['value']);
+        }
+
+        return [$whereFilter, $havingFilter];
+    }
+
+
 
 }

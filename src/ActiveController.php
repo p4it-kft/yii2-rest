@@ -76,28 +76,39 @@ class ActiveController extends \yii\rest\ActiveController
             if(method_exists($this->searchModelClass, 'attributeMap')) {
                 $attributeMap = $this->searchModelClass::attributeMap();
             }
+            if(method_exists($this->searchModelClass, 'attributeHaving')) {
+                $attributeHaving = $this->searchModelClass::attributeHaving();
+            }
 
             $actions['index']['dataFilter'] = [
                 'class' => ActiveDataFilter::class,
                 'searchModel' => $this->searchModelClass,
                 'attributeMap' => $attributeMap??[],
+                'attributeHaving' => $attributeHaving??[],
+                'splitFilter' => isset($attributeHaving),
             ];
 
             $actions['values']['dataFilter'] = [
                 'class' => ActiveDataFilter::class,
                 'searchModel' => $this->searchModelClass,
                 'attributeMap' => $attributeMap??[],
+                'attributeHaving' => $attributeHaving??[],
+                'splitFilter' => isset($attributeHaving),
             ];
         }
 
         if (method_exists($this->modelClass, 'relationSearchModels')) {
             foreach ($this->modelClass::relationSearchModels() as $key => $relationSearchModel) {
                 $attributeMap = [];
+                $attributeHaving = [];
 
                 /** @var RelationSearchModel $relationSearchModel */
                 $relationSearchModel = Yii::createObject($relationSearchModel);
                 if(method_exists($relationSearchModel->searchModelClass, 'attributeMap')) {
                     $attributeMap = $relationSearchModel->searchModelClass::attributeMap();
+                }
+                if(method_exists($relationSearchModel->searchModelClass, 'attributeHaving')) {
+                    $attributeHaving = $relationSearchModel->searchModelClass::attributeHaving();
                 }
 
                 $actions['index']['relationDataFilters'][$key] = [
@@ -105,6 +116,8 @@ class ActiveController extends \yii\rest\ActiveController
                     'searchModel' => $relationSearchModel->searchModelClass,
                     'filterAttributeName' => 'filter_'.$key,
                     'attributeMap' => $attributeMap??[],
+                    'attributeHaving' => $attributeHaving??[],
+                    'splitFilter' => (bool)$attributeHaving,
                 ];
 
                 $actions['view']['relationDataFilters'][$key] = [
@@ -112,6 +125,8 @@ class ActiveController extends \yii\rest\ActiveController
                     'searchModel' => $relationSearchModel->searchModelClass,
                     'filterAttributeName' => 'filter_'.$key,
                     'attributeMap' => $attributeMap??[],
+                    'attributeHaving' => $attributeHaving??[],
+                    'splitFilter' => (bool)$attributeHaving,
                 ];
             }
         }
@@ -182,7 +197,14 @@ class ActiveController extends \yii\rest\ActiveController
             $query = $modelClass::find();
         }
 
-        if (!empty($filter)) {
+        if($action->dataFilter instanceof ActiveDataFilter && $action->dataFilter->splitFilter) {
+            if (isset($filter['whereFilter']) && $filter['whereFilter']) {
+                $query->andWhere($filter['whereFilter']);
+            }
+            if (isset($filter['havingFilter']) && $filter['havingFilter']) {
+                $query->andHaving($filter['havingFilter']);
+            }
+        } elseif (!empty($filter)) {
             $query->andWhere($filter);
         }
 
