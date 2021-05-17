@@ -34,9 +34,11 @@ class DescribeResource extends DescribeContentSchema
 
         //fixme: this is not always good! fields can be empty because we are working with not populated active records.
         //todo: relations are missing as well. we need to find a way to get back all the relations.
-        if($model->hasMethod('find')) {
-            $model = $model::find()->one()??$model;
-        }
+        
+        //this method is to slow!
+        //if($model->hasMethod('find')) {
+        //    $model = $model::find()->one()??$model;
+        //}
 
         $fields = $model->fields();
         if(!$fields) {
