@@ -23,17 +23,26 @@ class DescribeController extends Controller
         $describe->servers[] = new DescribeServer(['url' => Yii::$app->urlManager->getHostInfo()]);
 
         /** @var \yii\web\UrlRule $rule */
+        $processedControllers = [];
         foreach (\Yii::$app->urlManager->rules as $rule) {
             if (!($rule instanceof \yii\rest\UrlRule)) {
                 continue;
             }
+
+            $controller = reset($rule->controller);
+
+            if(in_array($controller, $processedControllers)) {
+                continue;
+            }
+
+            $processedControllers[] = $controller;
 
             try {
                 \Yii::$app->requestedRoute = reset($rule->controller) . '/describe';
                 \Yii::$app->request->headers->removeAll();
                 \Yii::$app->request->headers->add('Content-Type', 'application/json');
 
-                ArrayHelper::mergeInto($describe->paths,\Yii::$app->runAction(reset($rule->controller) . '/describe', ['onlyPath'=>true]));
+                ArrayHelper::mergeInto($describe->paths,\Yii::$app->runAction($controller. '/describe', ['onlyPath'=>true]));
             } catch (InvalidRouteException $exception) {
 
             } catch (\Exception $exception) {
