@@ -86,11 +86,16 @@ trait ConditionallyLoadsAttributes
     }
 
     public function toArray(array $fields = [], array $expand = [], $recursive = true) {
-        $result = $this->resolveFields($fields, $expand);
-        $result = $this->filter($result);
-        if(!$result) {
+        $fields = $this->resolveFields($fields,[]);
+        $expand = array_diff_key($this->resolveFields([], $expand), $fields);
+
+        $fields = $this->filter($fields);
+        $expand = $this->filter($expand);
+
+        if(!$fields && !$expand) {
             return [];
         }
-        return parent::toArray(array_keys($result), [], $recursive);
+        return parent::toArray(array_keys($fields), array_keys($expand), $recursive);
     }
+
 }
