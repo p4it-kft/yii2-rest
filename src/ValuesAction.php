@@ -11,12 +11,18 @@ use p4it\rest\server\data\TransformActiveDataProvider;
 use p4it\rest\server\resources\ValueResource;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\data\DataFilter;
 use yii\db\Query;
 use yii\web\ServerErrorHttpException;
 
 class ValuesAction extends \yii\rest\IndexAction
 {
     public $transform;
+    
+    /**
+     * @var DataFilter[]
+     */
+    public $relationDataFilters = [];
     
     /**
      * @return ActiveDataProvider
