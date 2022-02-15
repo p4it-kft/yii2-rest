@@ -14,6 +14,7 @@ use yii\web\UnauthorizedHttpException;
 class ActiveController extends \yii\rest\ActiveController
 {
     use ResourceSearchModelQueryTrait;
+    
     public $searchModelClass;
 
     /**
@@ -137,6 +138,9 @@ class ActiveController extends \yii\rest\ActiveController
     /**
      * ha action-onként külön jogosultság kezelés van, akkor ezt kell kifejteni a controller szinten is
      * tovább szűkítve a már megadott searchQuery-t
+     *
+     * FIXME: az IndexAction-be bekerült egy új szűkítési lehetőség: prepareSearchQuery
+     * ezt is majd ide betenni ide a checkAccess-be     
      *
      * @param string $action
      * @param null $model
