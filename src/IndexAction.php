@@ -60,6 +60,10 @@ class IndexAction extends \yii\rest\IndexAction
             $query->andWhere($filter);
         }
 
+        if (is_callable($this->prepareSearchQuery)) {
+            $query = call_user_func($this->prepareSearchQuery, $query, $requestParams);
+        }
+        
         return Yii::createObject([
             'class' => ActiveDataProvider::class,
             'query' => $query,
