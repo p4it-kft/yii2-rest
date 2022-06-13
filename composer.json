@@ -20,7 +20,7 @@
     "process-timeout": 1800
   },
   "require": {
-    "php": ">=7.1.0",
+    "php": ">=7.4.0",
     "symfony/yaml": "^3.2",
     "yiisoft/yii2": "~2.0"
   },
