@@ -22,8 +22,8 @@ class ValuesAction extends \yii\rest\IndexAction
     /**
      * @var DataFilter[]
      */
-    public $relationDataFilters = [];
-    
+    public array $relationDataFilters = [];
+
     /**
      * @return ActiveDataProvider
      */
@@ -53,12 +53,12 @@ class ValuesAction extends \yii\rest\IndexAction
             throw new ServerErrorHttpException('Column Id is not a safe attribute.');
         }
 
-        $query = (new Query())->from(['subQuery' => $dataprovider->query])->groupBy([$columnName]);
+        $query = (new Query())->from(['subQuery' => $dataprovider->query])->groupBy([$columnName])->addOrderBy($dataprovider->getSort()->getOrders());
 
         if ($this->transform !== null && is_callable($this->transform)) {
             $transform = $this->transform;
         } else {
-            $transform = static function($row) {
+            $transform = static function($row, $columnId, $columnName) {
                 return new ValueResource(
                     ['name' => $row['name'], 'id' => $row['id'], 'count' => $row['count']]
                 );
@@ -69,6 +69,8 @@ class ValuesAction extends \yii\rest\IndexAction
             'class' => TransformActiveDataProvider::class,
             'query' => $query->select(['name' => $columnName, 'count' => 'count(*)', 'id' => $columnId]),
             'transform' => $transform,
+            'columnId' => $columnId,
+            'columnName' => $columnName,
             'db' => $model::getDb(),
             'keys' => ['id'],
             'pagination' => [
