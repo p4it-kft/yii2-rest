@@ -52,7 +52,7 @@ class DescribeAction extends Action
 
         $describe = new Describe();
         $describe->info = new DescribeInfo(['title' => Yii::$app->name, 'version' => $this->version]);
-        $describe->servers[] = new DescribeServer(['url' => Yii::$app->urlManager->getHostInfo()]);
+        $describe->servers[] = new DescribeServer(['url' => Yii::$app->urlManager->getHostInfo() . Yii::$app->urlManager->getBaseUrl()]);
 
         foreach ($this->getUrlRules() as $urlRule) {
 
@@ -88,7 +88,10 @@ class DescribeAction extends Action
         }
 
         ArrayHelper::removeValue($describeArray, null, true);
-        return Yaml::dump($describeArray, 20, 2);
+        $yamlContent = Yaml::dump($describeArray, 20, 2);
+
+        Yii::$app->response->headers->set('Content-Type', 'application/yaml');
+        return Yii::$app->response->sendContentAsFile($yamlContent, 'testyaml.yaml');
     }
 
     private function getActions(): array
